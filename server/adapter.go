@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	mongodbadapter "github.com/casbin/mongodb-adapter/v2"
 	"os"
 
 	pb "github.com/casbin/casbin-server/proto"
@@ -34,11 +35,17 @@ var errDriverName = errors.New("currently supported DriverName: file | mysql | p
 func newAdapter(in *pb.NewAdapterRequest) (persist.Adapter, error) {
 	var a persist.Adapter
 	in = checkLocalConfig(in)
-	supportDriverNames := [...]string{"file", "mysql", "postgres", "mssql"}
+	supportDriverNames := [...]string{"file", "mysql", "postgres", "mssql" , "mongodb"}
 
 	switch in.DriverName {
 	case "file":
 		a = fileadapter.NewAdapter(in.ConnectString)
+	case "mongodb":
+		a ,err := mongodbadapter.NewAdapter(in.ConnectString)
+		if err != nil{
+			return nil ,err
+		}
+		return a,nil
 	default:
 		var support = false
 		for _, driverName := range supportDriverNames {
